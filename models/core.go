@@ -11,6 +11,7 @@ var DB *gorm.DB
 var err error
 
 func init() {
+	fmt.Println("init db")
 	username := "root"
 	password := "123456"
 	host := "127.0.0.1"
@@ -21,5 +22,11 @@ func init() {
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
+	}
+	err := DB.AutoMigrate(&Account{})
+	if err != nil {
+		fmt.Println("account create table err:", err)
+		panic(err)
+		return
 	}
 }

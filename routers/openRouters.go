@@ -13,5 +13,6 @@ func OpenRouters(engine *gin.Engine) {
 		userController := open.UserController{}
 		openGroup.GET("/", userController.Home)
 		openGroup.GET("/login", interceptor.TokenAuth, userController.Login)
+		openGroup.GET("/find-all", interceptor.TokenAuth, userController.FindAll)
 	}
 }
