@@ -5,7 +5,7 @@ import (
 	"errors"
 	"go_gin/interceptor"
 	"go_gin/routers"
-	"go_gin/tcpServer"
+	"go_gin/tcp/tcpServer"
 	"net"
 	"net/http"
 	"os"

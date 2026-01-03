@@ -2,7 +2,10 @@ package tcpServer
 
 import (
 	"fmt"
-	"go_gin/broker"
+	"go_gin/models"
+	"go_gin/packetV2"
+	"go_gin/tcp/broker"
+	"go_gin/tcp/dto"
 	"net"
 	"time"
 )
@@ -24,7 +27,12 @@ func HandleConnect(conn net.Conn) {
 		}
 		fmt.Println("连接已关闭并释放资源")
 	}()
-
+	connect := dto.TcpConnect{
+		Conn: conn,
+		Id:   models.GenerateUniqueID(),
+	}
+	connectionAbstract := GetTcpConnectionAbstract()
+	connectionAbstract.AddOpenChannel(connect)
 	buffer := make([]byte, 5*1024)
 	for {
 		err := conn.SetReadDeadline(time.Now().Add(60 * time.Second))
@@ -55,12 +63,9 @@ func HandleConnect(conn net.Conn) {
 
 			// 使用简单数据处理器处理数据包
 			defaultBroker := broker.DefaultBroker{}
-
-			// 生成连接ID（这里使用连接的远程地址作为ID）
-			connId := conn.RemoteAddr().String()
-
+			packetV2 := packetV2.Deserialize(dataPacket)
 			// 使用 DataHandler 处理数据包
-			result := defaultBroker.HandlePacket(dataPacket, connId)
+			result := defaultBroker.HandlePacket(packetV2, connect)
 			fmt.Printf("数据包处理结果: %s\n", result)
 			startIndex = -1
 			endIndex = -1
