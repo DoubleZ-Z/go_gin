@@ -33,7 +33,7 @@ func GetTcpConnectionAbstract() *TcpConnectionAbstract {
 	return tcpConnectionAbstract
 }
 
-func (t *TcpConnectionAbstract) Init() {
+func (t *TcpConnectionAbstract) init() {
 	t.ConnectionCache = make(map[string]dto.TcpConnect)
 	t.StationConnectionCache = make(map[string]dto.TcpConnect)
 	t.ChannelMap = make(map[string]string)

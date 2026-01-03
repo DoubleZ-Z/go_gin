@@ -8,7 +8,7 @@ import (
 )
 
 type Broker interface {
-	HandlePacket(packet packetV2.ProtonPacket[any], connect dto.TcpConnect) string
+	HandlePacket(packet packetV2.ProtonPacket[any], connect dto.TcpConnect) (string, error)
 	SendAction(stationNo string, action string, actionVar string, content any) string
 }
 
@@ -22,7 +22,7 @@ func (b *DefaultBroker) HandlePacket(packet packetV2.ProtonPacket[any], connect 
 	}
 	switch packet.Type {
 	case packetV2.TYPE_REQUEST:
-		manager.OnRequest(packet, connect)
+		response := manager.OnRequest(packet, connect)
 	}
 	return "", nil
 }
