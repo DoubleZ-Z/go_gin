@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"fmt"
-	"go_gin/models"
+	"go_gin/util"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,5 +10,5 @@ import (
 
 func Log(c *gin.Context) {
 	cp := c.Copy()
-	go fmt.Println(models.UnixToTime(time.Now().Unix()), cp.Request.Host, cp.Request.RequestURI, "这里异步记录了一个日志")
+	go fmt.Println(util.UnixToTimeString(time.Now().Unix()), cp.Request.Host, cp.Request.RequestURI, "这里异步记录了一个日志")
 }

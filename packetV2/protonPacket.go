@@ -2,6 +2,15 @@ package packetV2
 
 import (
 	"encoding/json"
+	"go_gin/util"
+	"time"
+)
+
+const (
+	TYPE_REQUEST   = "request"
+	TYPE_RESPONSE  = "response"
+	REASON_COMMAND = "command"
+	PROTOCOL_VER_2 = 2
 )
 
 type ProtonPacketHeader struct {
@@ -30,7 +39,7 @@ type ProtonPacket[T any] struct {
 	ProtocolVar int
 	Header      ProtonPacketHeader
 	Ext         ProtonPacketExt
-	payload     []byte // 存储原始payload字节数据，用于后续转换
+	payload     any
 }
 
 func CheckSign(packet ProtonPacket[any]) bool {
@@ -65,7 +74,7 @@ func Deserialize(payloadV2 []byte) ProtonPacket[any] {
 			ProtocolVar: 0,
 			Header:      ProtonPacketHeader{},
 			Ext:         ProtonPacketExt{},
-			payload:     []byte{},
+			payload:     nil,
 		}
 	}
 
@@ -81,12 +90,12 @@ func Deserialize(payloadV2 []byte) ProtonPacket[any] {
 }
 
 // SetPayload 设置payload数据
-func (packet *ProtonPacket[T]) SetPayload(data []byte) {
+func (packet *ProtonPacket[T]) SetPayload(data any) {
 	packet.payload = data
 }
 
 // GetPayload 获取payload数据
-func (packet *ProtonPacket[T]) GetPayload() []byte {
+func (packet *ProtonPacket[T]) GetPayload() any {
 	return packet.payload
 }
 
@@ -96,7 +105,35 @@ func (packet *ProtonPacket[T]) toJsonObject() (T, error) {
 	if packet.payload == nil {
 		return result, nil
 	}
-
-	err := json.Unmarshal(packet.payload, &result)
+	bytes, err := json.Marshal(packet.payload)
+	if err != nil {
+		return result, err
+	}
+	err2 := json.Unmarshal(bytes, &result)
+	if err2 != nil {
+		return result, err2
+	}
 	return result, err
+}
+
+func Response(request ProtonPacket[any], payload any, statusCode int, message string) (ProtonPacket[any], error) {
+	response := ProtonPacket[any]{}
+	response.SetPayload(payload)
+	response.Type = TYPE_RESPONSE
+	response.ProtocolVar = PROTOCOL_VER_2
+
+	ext := ProtonPacketExt{
+		ResCode: statusCode,
+		ResMsg:  message,
+	}
+	response.Ext = ext
+	header := ProtonPacketHeader{
+		Action:    request.Header.Action,
+		ActionVar: request.Header.ActionVar,
+		Trace:     request.Header.Trace,
+		Priority:  request.Header.Priority,
+		Timestamp: util.UnixToTimestampString(time.Now().Unix()),
+	}
+	response.Header = header
+	return response, nil
 }

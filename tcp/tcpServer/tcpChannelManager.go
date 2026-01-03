@@ -2,10 +2,10 @@ package tcpServer
 
 import (
 	"fmt"
-	"go_gin/models"
 	"go_gin/packetV2"
 	"go_gin/tcp/broker"
 	"go_gin/tcp/dto"
+	"go_gin/util"
 	"net"
 	"time"
 )
@@ -29,7 +29,7 @@ func HandleConnect(conn net.Conn) {
 	}()
 	connect := dto.TcpConnect{
 		Conn: conn,
-		Id:   models.GenerateUniqueID(),
+		Id:   util.GenerateUniqueID(),
 	}
 	connectionAbstract := GetTcpConnectionAbstract()
 	connectionAbstract.AddOpenChannel(connect)
@@ -63,9 +63,12 @@ func HandleConnect(conn net.Conn) {
 
 			// 使用简单数据处理器处理数据包
 			defaultBroker := broker.DefaultBroker{}
-			packetV2 := packetV2.Deserialize(dataPacket)
+			packet := packetV2.Deserialize(dataPacket)
 			// 使用 DataHandler 处理数据包
-			result := defaultBroker.HandlePacket(packetV2, connect)
+			result, err := defaultBroker.HandlePacket(packet, connect)
+			if err != nil {
+				fmt.Printf("数据包处理错误: %v\n", err)
+			}
 			fmt.Printf("数据包处理结果: %s\n", result)
 			startIndex = -1
 			endIndex = -1
